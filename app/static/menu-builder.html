@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dealer Industries — Menu Builder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/app.css" />
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1.25rem 1rem;
+    }
+
+    .page { width: 100%; max-width: 900px; }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .brand-logo {
+      height: 64px;
+      width: auto;
+      object-fit: contain;
+      margin-bottom: 0.75rem;
+    }
+
+    .page-header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.35rem;
+    }
+
+    .page-header p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 1.75rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+      margin-bottom: 1.25rem;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .section-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+    }
+
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      background: var(--text);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 0.7rem 1.1rem;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(15, 17, 21, 0.12);
+      transition: background 0.15s, transform 0.15s;
+    }
+
+    .btn-primary:hover { background: #000; transform: translateY(-1px); }
+
+    .projects-empty {
+      text-align: center;
+      padding: 2rem 1.5rem;
+      border: 1.5px dashed var(--border-strong);
+      border-radius: 14px;
+      background: var(--surface-muted);
+    }
+
+    .projects-empty p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin: 0.5rem auto 1.25rem;
+      max-width: 400px;
+      line-height: 1.5;
+    }
+
+    .project-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .project-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 0.35rem 1.25rem;
+      padding: 1.1rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      background: var(--surface);
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .project-row:hover {
+      border-color: var(--border-strong);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-1px);
+    }
+
+    .project-row-main { min-width: 0; }
+
+    .project-row h3 {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      margin-bottom: 0.15rem;
+      letter-spacing: -0.01em;
+    }
+
+    .project-meta {
+      font-size: 0.75rem;
+      color: var(--text-subtle);
+    }
+
+    .project-row-side {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      justify-content: center;
+      gap: 0.35rem;
+    }
+
+    .project-progress {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .project-progress.complete { color: var(--success); }
+
+    .project-mini-track {
+      width: 88px;
+      height: 4px;
+      background: var(--surface-muted);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .project-mini-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), #e8334a);
+      border-radius: 999px;
+    }
+
+    .project-mini-fill.complete { background: var(--success); }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      z-index: 100;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--surface);
+      border-radius: 16px;
+      padding: 1.75rem;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.18);
+    }
+
+    .modal h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.35rem;
+    }
+
+    .modal > p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 1.25rem;
+      line-height: 1.5;
+    }
+
+    .field label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+    }
+
+    .field input {
+      width: 100%;
+      background: var(--surface-muted);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 0.72rem 0.85rem;
+      font-family: inherit;
+      font-size: 0.9rem;
+    }
+
+    .field input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-ring);
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 0.65rem;
+      margin-top: 1.25rem;
+    }
+
+    .btn-secondary {
+      flex: 1;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.75rem;
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+
+    .btn-secondary:hover { border-color: var(--border-strong); color: var(--text); }
+
+    .modal-actions .btn-primary { flex: 1; justify-content: center; }
+
+    .form-error {
+      font-size: 0.8rem;
+      color: var(--error);
+      margin-top: 0.65rem;
+      display: none;
+    }
+
+    .form-error.visible { display: block; }
+  </style>
+</head>
+<body>
+
+  <div class="page">
+    <a href="/" class="back-link">
+      <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+      </svg>
+      Back to tools
+    </a>
+
+    <header class="page-header">
+      <img src="/static/logo.png" alt="Dealer Industries" class="brand-logo" />
+      <h1>Menu Builder</h1>
+      <p>Build dealership maintenance menus, review profitability, and export advisor &amp; parts cheat sheets.</p>
+    </header>
+
+    <section class="card">
+      <div class="section-header">
+        <p class="section-label">Your projects</p>
+        <div class="section-actions">
+          <a href="/menu-builder/settings" class="btn-secondary">
+            Menu Builder settings
+          </a>
+          <button type="button" class="btn-primary" id="open-create-btn">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            New dealership project
+          </button>
+        </div>
+      </div>
+
+      <div id="projects-container">
+        <div class="projects-empty" id="projects-empty">
+          <h3>No projects yet</h3>
+          <p>Click <strong>New dealership project</strong> to walk through all five workflow steps — pricing, profitability, advisor ops, and parts pull.</p>
+          <button type="button" class="btn-primary" id="empty-create-btn">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            Create your first project
+          </button>
+        </div>
+        <div class="project-list" id="project-list" style="display:none;"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal-overlay" id="create-modal">
+    <div class="modal" role="dialog" aria-labelledby="modal-title">
+      <h2 id="modal-title">New dealership project</h2>
+      <p>Enter the dealership name. We'll set up default pricing assumptions from your workflow template — you can adjust them next.</p>
+      <form id="create-form">
+        <div class="field">
+          <label for="dealership-name">Dealership name</label>
+          <input type="text" id="dealership-name" placeholder="e.g. Grubbs CDJR WF" required autofocus />
+        </div>
+        <p class="form-error" id="create-error"></p>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" id="cancel-create-btn">Cancel</button>
+          <button type="submit" class="btn-primary">Create project</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <footer class="page-footer">
+    <p>&copy; 2026 Dealer Industries. All rights reserved.</p>
+  </footer>
+
+  <script>
+    const modal = document.getElementById("create-modal");
+    const createForm = document.getElementById("create-form");
+    const nameInput = document.getElementById("dealership-name");
+    const createError = document.getElementById("create-error");
+    const projectList = document.getElementById("project-list");
+    const projectsEmpty = document.getElementById("projects-empty");
+
+    function openModal() {
+      modal.classList.add("open");
+      nameInput.value = "";
+      createError.classList.remove("visible");
+      setTimeout(() => nameInput.focus(), 50);
+    }
+
+    function closeModal() {
+      modal.classList.remove("open");
+    }
+
+    document.getElementById("open-create-btn").addEventListener("click", openModal);
+    document.getElementById("empty-create-btn").addEventListener("click", openModal);
+    document.getElementById("cancel-create-btn").addEventListener("click", closeModal);
+    modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+
+    function formatDate(iso) {
+      try {
+        return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+      } catch { return ""; }
+    }
+
+    async function loadProjects() {
+      const res = await fetch("/api/menu-projects");
+      const projects = await res.json();
+
+      if (!projects.length) {
+        projectsEmpty.style.display = "block";
+        projectList.style.display = "none";
+        return;
+      }
+
+      projectsEmpty.style.display = "none";
+      projectList.style.display = "flex";
+      projectList.innerHTML = projects.map(p => {
+        const pct = p.steps_total ? (p.steps_completed / p.steps_total) * 100 : 0;
+        const complete = p.steps_completed === p.steps_total;
+        return `
+        <a href="/menu-builder/projects/${p.id}" class="project-row">
+          <div class="project-row-main">
+            <h3>${escapeHtml(p.name)}</h3>
+            <p class="project-meta">Updated ${formatDate(p.updated_at)}</p>
+          </div>
+          <div class="project-row-side">
+            <span class="project-progress ${complete ? "complete" : ""}">${p.steps_completed}/${p.steps_total} steps</span>
+            <div class="project-mini-track">
+              <div class="project-mini-fill ${complete ? "complete" : ""}" style="width:${pct}%"></div>
+            </div>
+          </div>
+        </a>`;
+      }).join("");
+    }
+
+    function escapeHtml(str) {
+      const d = document.createElement("div");
+      d.textContent = str;
+      return d.innerHTML;
+    }
+
+    createForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      createError.classList.remove("visible");
+      const name = nameInput.value.trim();
+      if (!name) {
+        createError.textContent = "Please enter a dealership name.";
+        createError.classList.add("visible");
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/menu-projects", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name }),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.detail || "Failed to create project.");
+        }
+        const project = await res.json();
+        window.location.href = `/menu-builder/projects/${project.id}`;
+      } catch (err) {
+        createError.textContent = err.message;
+        createError.classList.add("visible");
+      }
+    });
+
+    loadProjects();
+  </script>
+</body>
+</html>

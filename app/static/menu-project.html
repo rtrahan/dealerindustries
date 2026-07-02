@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dealer Industries — Menu Project</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/app.css" />
+  <link rel="stylesheet" href="/static/css/menu-wizard.css" />
+</head>
+<body class="menu-app">
+
+  <header class="menu-topbar">
+    <div class="menu-topbar-left">
+      <img src="/static/logo.png" alt="Dealer Industries" class="menu-topbar-logo" />
+      <nav class="menu-breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span class="menu-breadcrumb-sep">/</span>
+        <a href="/menu-builder">Menu Builder</a>
+        <span class="menu-breadcrumb-sep">/</span>
+        <span class="menu-breadcrumb-current" id="breadcrumb-name">Project</span>
+      </nav>
+    </div>
+    <div class="menu-topbar-right">
+      <span class="save-pill" id="save-status" aria-live="polite"></span>
+    </div>
+  </header>
+
+  <section class="menu-hero">
+    <div class="menu-hero-inner">
+      <div class="workflow-header">
+        <div class="workflow-title">
+          <h1 id="project-name">Loading…</h1>
+          <p class="menu-hero-meta" id="project-meta"></p>
+        </div>
+        <div class="workflow-status">
+          <div class="ready-banner" id="ready-banner">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Ready for service
+          </div>
+          <div class="progress-wrap">
+            <div class="progress-labels">
+              <span>Workflow progress</span>
+              <span><strong id="progress-text">0</strong> of 5 complete</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="workflow-nav-row">
+        <div class="workflow-nav-copy">
+          <span>Process checklist</span>
+          <p>Complete each spreadsheet tab to launch this dealership's maintenance menu.</p>
+        </div>
+        <nav class="step-nav" id="step-nav" aria-label="Process checklist"></nav>
+      </div>
+    </div>
+  </section>
+
+  <main class="menu-body">
+    <div class="wizard-layout">
+      <div class="wizard-main">
+        <header class="wizard-header">
+          <div class="wizard-header-top">
+            <div>
+              <h2 id="step-title"></h2>
+              <p id="step-subtitle"></p>
+            </div>
+            <span class="sheet-badge" id="sheet-badge"></span>
+          </div>
+        </header>
+
+        <div class="wizard-content" id="step-content"></div>
+
+        <section class="deliverables-panel" id="deliverables-panel">
+          <div class="deliverables-copy">
+            <span>Final deliverables</span>
+            <h3>Download dealership cheat sheets</h3>
+            <p>Once the workflow is complete, export the advisor and parts department PDFs from the data in this project.</p>
+          </div>
+          <div class="deliverables-actions">
+            <a class="deliverable-btn" id="advisor-ops-export" href="#" aria-disabled="true">
+              Advisor Ops PDF
+            </a>
+            <a class="deliverable-btn" id="parts-pull-export" href="#" aria-disabled="true">
+              Parts Pull PDF
+            </a>
+          </div>
+        </section>
+
+        <footer class="wizard-footer">
+          <button type="button" class="btn-nav" id="btn-prev">
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+            Previous
+          </button>
+          <div class="wizard-footer-actions">
+            <button type="button" class="btn-nav success" id="btn-complete">Mark step complete</button>
+            <button type="button" class="btn-nav primary" id="btn-next">
+              Next step
+              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+            </button>
+          </div>
+        </footer>
+      </div>
+    </div>
+  </main>
+
+  <footer class="page-footer">
+    <p>&copy; 2026 Dealer Industries. All rights reserved.</p>
+  </footer>
+
+  <script src="/static/js/menu-wizard.js"></script>
+</body>
+</html>

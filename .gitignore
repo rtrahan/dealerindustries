@@ -1,0 +1,22 @@
+# Environment
+.env
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# OS
+.DS_Store
+
+# Local dev / generated outputs
+test-*.pdf
+*.pdf
+
+# Local menu builder data
+data/menu_projects/
+data/menu_admin/

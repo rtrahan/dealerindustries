@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dealer Industries — Menu Builder Settings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/app.css" />
+  <style>
+    body { padding: 1.5rem; }
+    .admin-page { max-width: 1280px; margin: 0 auto; }
+    .admin-topbar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.25rem; }
+    .admin-title h1 { font-size: 1.5rem; letter-spacing: -0.03em; }
+    .admin-title p { color: var(--text-muted); font-size: 0.9rem; }
+    .admin-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow-md); padding: 1.25rem; margin-bottom: 1rem; }
+    .settings-tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border); }
+    .settings-tab { border: 0; background: transparent; padding: 0.85rem 1rem; font: inherit; font-size: 0.9rem; font-weight: 700; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; }
+    .settings-tab.active { color: var(--text); border-bottom-color: var(--text); }
+    .settings-section { display: none; }
+    .settings-section.active { display: block; }
+    .admin-section-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1rem; }
+    .admin-section-header h2 { font-size: 1rem; }
+    .admin-section-header p { color: var(--text-muted); font-size: 0.82rem; margin-top: 0.2rem; }
+    .admin-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.75rem; }
+    .admin-field label { display: block; font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 0.35rem; }
+    .admin-field input, .admin-field select { width: 100%; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-muted); padding: 0.65rem 0.75rem; font: inherit; }
+    .admin-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-md); }
+    .admin-table { width: 100%; min-width: 1040px; border-collapse: collapse; font-size: 0.82rem; }
+    .admin-table th { text-align: left; padding: 0.7rem; background: var(--surface-muted); border-bottom: 1px solid var(--border); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
+    .admin-table td { padding: 0.45rem 0.7rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .admin-table input, .admin-table select { width: 100%; min-width: 72px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface-muted); padding: 0.45rem 0.55rem; font: inherit; }
+    .admin-table td.num input { text-align: right; font-variant-numeric: tabular-nums; }
+    .admin-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .btn-secondary { display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: var(--radius-md); padding: 0.65rem 0.9rem; font: inherit; font-size: 0.82rem; font-weight: 700; cursor: pointer; }
+    .btn-danger { color: #991b1b; }
+    .kit-list { display: grid; gap: 1.15rem; }
+    .kit-card { border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 1.15rem; background: var(--surface); box-shadow: var(--shadow-md); }
+    .kit-card-header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-bottom: 1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border); }
+    .kit-card-title strong { display: block; font-size: 1.08rem; letter-spacing: -0.025em; }
+    .kit-card-title span { display: block; color: var(--text-muted); font-size: 0.8rem; margin-top: 0.15rem; }
+    .kit-summary-strip { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; justify-content: flex-end; }
+    .kit-summary-strip div { min-width: 118px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-muted); padding: 0.45rem 0.65rem; text-align: right; }
+    .kit-summary-strip span { display: block; font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+    .kit-summary-strip strong { display: block; font-size: 0.86rem; margin-top: 0.08rem; }
+    .kit-builder { display: grid; gap: 0.9rem; }
+    .kit-compose { display: grid; grid-template-columns: minmax(280px, 0.85fr) minmax(360px, 1fr); gap: 0.9rem; }
+    .kit-details-layout { display: grid; gap: 0.75rem; }
+    .kit-name-fields { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 0.75rem; }
+    .kit-number-fields { display: grid; grid-template-columns: 140px 160px 160px 110px; gap: 0.75rem; align-items: end; }
+    .kit-active-toggle { display: flex; align-items: center; justify-content: center; gap: 0.45rem; min-height: 2.75rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface-muted); font-size: 0.82rem; font-weight: 700; color: var(--text-muted); }
+    .kit-active-toggle input { width: auto; }
+    .kit-name-field input { font-weight: 700; font-size: 0.95rem; }
+    .kit-details-panel { background: linear-gradient(180deg, var(--surface-muted), #fff); }
+    .kit-panel { border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--surface-muted); padding: 0.9rem; }
+    .kit-panel h3 { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 0.7rem; }
+    .kit-panel-heading { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; margin-bottom: 0.7rem; }
+    .kit-panel-heading h3 { margin-bottom: 0; }
+    .kit-panel-heading span { color: var(--text-muted); font-size: 0.74rem; white-space: nowrap; }
+    .product-picker-search { width: 100%; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); padding: 0.7rem 0.8rem; font: inherit; margin-bottom: 0.7rem; }
+    .product-picker-list { display: grid; gap: 0.4rem; max-height: 360px; overflow: auto; padding-right: 0.15rem; }
+    .product-picker-item { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); padding: 0.65rem 0.75rem; text-align: left; cursor: pointer; font: inherit; transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s; }
+    .product-picker-item:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+    .product-picker-item strong { display: block; font-size: 0.82rem; }
+    .product-picker-item span { display: block; color: var(--text-muted); font-size: 0.72rem; margin-top: 0.1rem; }
+    .product-picker-item em { font-style: normal; font-size: 0.72rem; color: var(--text-subtle); white-space: nowrap; }
+    .selected-products-panel { background: #fff; }
+    .kit-items-editor { display: grid; gap: 0.45rem; max-height: 425px; overflow: auto; padding-right: 0.15rem; }
+    .kit-item-row { display: grid; grid-template-columns: minmax(0, 1fr) 74px auto; align-items: center; gap: 0.5rem; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); padding: 0.65rem 0.75rem; }
+    .kit-item-row strong { display: block; font-size: 0.82rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .kit-item-row span { display: block; color: var(--text-muted); font-size: 0.72rem; }
+    .kit-item-row input { width: 100%; border: 1px solid var(--border); border-radius: 6px; background: var(--surface-muted); padding: 0.35rem 0.45rem; font: inherit; text-align: right; }
+    .kit-remove-item { border: 0; background: transparent; color: #991b1b; font-weight: 700; cursor: pointer; padding: 0.25rem; font-size: 0.78rem; }
+    .kit-empty { color: var(--text-muted); font-size: 0.82rem; padding: 0.8rem; border: 1px dashed var(--border-strong); border-radius: var(--radius-md); background: var(--surface); }
+    .status { min-height: 1.2rem; color: var(--success); font-size: 0.82rem; margin-top: 0.75rem; }
+    @media (max-width: 1100px) { .kit-compose { grid-template-columns: 1fr; } .kit-summary-strip { justify-content: flex-start; } .kit-name-fields, .kit-number-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (max-width: 620px) { .kit-name-fields, .kit-number-fields { grid-template-columns: 1fr; } }
+    @media (max-width: 900px) { .admin-grid, .kit-list { grid-template-columns: 1fr; } body { padding: 0.85rem; } }
+  </style>
+</head>
+<body>
+  <main class="admin-page">
+    <div class="admin-topbar">
+      <div>
+        <a class="back-link" href="/menu-builder">← Back to Menu Builder</a>
+        <div class="admin-title">
+          <h1>Menu Builder Settings</h1>
+          <p>Manage global products, system defaults, and PMP kit templates used by dealership menu projects.</p>
+        </div>
+      </div>
+      <button class="btn-primary" id="save-all">Save all changes</button>
+    </div>
+
+    <nav class="settings-tabs" aria-label="Menu Builder settings sections">
+      <button type="button" class="settings-tab active" data-section="products-section">Products</button>
+      <button type="button" class="settings-tab" data-section="kits-section">Group Kits</button>
+    </nav>
+
+    <section id="products-section" class="settings-section active">
+      <section class="admin-card">
+        <div class="admin-section-header">
+          <div>
+            <h2>System defaults</h2>
+            <p>New dealership projects inherit these assumptions unless edited.</p>
+          </div>
+        </div>
+        <div class="admin-grid">
+          <div class="admin-field"><label>Maintenance ELR</label><input id="setting-elr" type="number" step="0.01" /></div>
+          <div class="admin-field"><label>Avg labor cost/hour</label><input id="setting-labor" type="number" step="0.01" /></div>
+          <div class="admin-field"><label>Parts gross %</label><input id="setting-gross" type="number" step="0.01" /></div>
+          <div class="admin-field"><label>Spiff amount</label><input id="setting-spiff" type="number" step="0.01" /></div>
+        </div>
+      </section>
+
+      <section class="admin-card">
+        <div class="admin-section-header">
+          <div>
+            <h2>Products</h2>
+            <p>Products listed here feed Dealership Pricing and can be used inside Group Kits.</p>
+          </div>
+          <button class="btn-secondary" id="add-product">Add product</button>
+        </div>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Name</th><th>Category</th><th>Parts cost</th><th>Parts sale</th><th>Labor hrs</th><th>Sales price</th><th>OP code</th><th>VIN</th><th>Active</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="products-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+
+    <section id="kits-section" class="settings-section">
+      <section class="admin-card">
+        <div class="admin-section-header">
+          <div>
+            <h2>Group Kits</h2>
+            <p>Build service kits from products, like combos. Dealerships inherit these groups unless edited.</p>
+          </div>
+          <button class="btn-secondary" id="add-kit">Add kit</button>
+        </div>
+        <div class="kit-list" id="kit-list"></div>
+      </section>
+    </section>
+
+    <p class="status" id="status"></p>
+  </main>
+
+  <script src="/static/js/product-admin.js"></script>
+</body>
+</html>

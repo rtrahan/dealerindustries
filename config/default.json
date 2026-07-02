@@ -1,0 +1,120 @@
+{
+  "store_name": "Grubbs CDJR WF",
+  "source_codes": ["210"],
+  "pay_types": ["CUSTOMER_PAY"],
+  "maintenance_elr": 90,
+  "kits": [
+    {
+      "code": "BS",
+      "label": "BS",
+      "part_numbers": ["BD59136", "BD-59136"],
+      "price": 139.95,
+      "hours": 0.8
+    },
+    {
+      "code": "CS",
+      "label": "CS",
+      "part_numbers": ["BD94608", "BD-94608"],
+      "price": 199.95,
+      "hours": 1.0
+    },
+    {
+      "code": "ATS",
+      "label": "ATS",
+      "part_numbers": ["BD93258", "BD-93258", "BD57074", "BD-57074", "BD57084", "BD-57084"],
+      "price": 399.95,
+      "hours": 1.0
+    },
+    {
+      "code": "CFS",
+      "label": "CFS",
+      "part_numbers": ["BD93010", "BD-93010"],
+      "price": 149.95,
+      "hours": 1.0
+    },
+    {
+      "code": "FDIFF",
+      "label": "FDIFF",
+      "part_numbers": ["BD75598", "BD-75598"],
+      "price": 189.95,
+      "hours": 0.5
+    },
+    {
+      "code": "RDIFF",
+      "label": "RDIFF",
+      "part_numbers": ["BD75590", "BD-75590"],
+      "price": 189.95,
+      "hours": 0.5
+    },
+    {
+      "code": "TC",
+      "label": "TC",
+      "part_numbers": [],
+      "price": 189.95,
+      "hours": 0.5
+    },
+    {
+      "code": "4x4",
+      "label": "4x4",
+      "part_numbers": [],
+      "price": 499.95,
+      "hours": 1.5
+    },
+    {
+      "code": "EVAP",
+      "label": "EVAP",
+      "part_numbers": [],
+      "price": 149.95,
+      "hours": 0.5
+    },
+    {
+      "code": "ACFRESH",
+      "label": "ACFRESH",
+      "part_numbers": ["BD94584", "BD-94584"],
+      "price": 39.95,
+      "hours": 0.1
+    },
+    {
+      "code": "HEADL",
+      "label": "HEADL",
+      "part_numbers": [],
+      "price": 199.95,
+      "hours": 0.8
+    },
+    {
+      "code": "VPP",
+      "label": "VPP",
+      "part_numbers": ["BD93435", "BD-93435"],
+      "price": 56.53,
+      "hours": 0.1
+    },
+    {
+      "code": "DPP",
+      "label": "DPP",
+      "part_numbers": [],
+      "price": 64.99,
+      "hours": 0.1
+    },
+    {
+      "code": "DIS",
+      "label": "DIS",
+      "part_numbers": [],
+      "price": 299.95,
+      "hours": 1.2
+    },
+    {
+      "code": "BATTS",
+      "label": "BATTS",
+      "part_numbers": ["BD94149", "BD-94149"],
+      "price": 59.95,
+      "hours": 0.3
+    },
+    {
+      "code": "Pro1",
+      "label": "Pro 1",
+      "part_numbers": [],
+      "price": 0.0,
+      "hours": 0.0
+    }
+  ]
+}

@@ -1,0 +1,133 @@
+{
+  "store_name": "-1_6197",
+  "source_codes": [
+    "210"
+  ],
+  "pay_types": [
+    "CUSTOMER_PAY"
+  ],
+  "maintenance_elr": 90.0,
+  "kits": [
+    {
+      "code": "BS",
+      "label": "BS",
+      "price": 109.95,
+      "hours": 1.0,
+      "part_numbers": [
+        "BD59136"
+      ]
+    },
+    {
+      "code": "CS",
+      "label": "CS",
+      "price": 129.95,
+      "hours": 1.0,
+      "part_numbers": [
+        "BD94608"
+      ]
+    },
+    {
+      "code": "ATS",
+      "label": "ATS",
+      "price": 219.99,
+      "hours": 1.0,
+      "part_numbers": [
+        "BD93258",
+        "BD57084"
+      ]
+    },
+    {
+      "code": "CFS",
+      "label": "CFS",
+      "price": 149.95,
+      "hours": 1.0,
+      "part_numbers": [
+        "BD93010"
+      ]
+    },
+    {
+      "code": "FDIFF",
+      "label": "FDIFF",
+      "price": 0.0,
+      "hours": 0.0,
+      "part_numbers": []
+    },
+    {
+      "code": "RDIFF",
+      "label": "RDIFF",
+      "price": 0.0,
+      "hours": 0.0,
+      "part_numbers": []
+    },
+    {
+      "code": "TC",
+      "label": "TC",
+      "price": 0.0,
+      "hours": 0.0,
+      "part_numbers": []
+    },
+    {
+      "code": "4x4",
+      "label": "4x4",
+      "price": 0.0,
+      "hours": 0.0,
+      "part_numbers": []
+    },
+    {
+      "code": "EVAP",
+      "label": "EVAP",
+      "price": 0.0,
+      "hours": 0.0,
+      "part_numbers": []
+    },
+    {
+      "code": "ACFRESH",
+      "label": "ACFRESH",
+      "price": 0.0,
+      "hours": 0.0,
+      "part_numbers": []
+    },
+    {
+      "code": "HEADL",
+      "label": "HEADL",
+      "price": 0.0,
+      "hours": 0.0,
+      "part_numbers": []
+    },
+    {
+      "code": "VPP",
+      "label": "VPP",
+      "price": 0.0,
+      "hours": 0.0,
+      "part_numbers": []
+    },
+    {
+      "code": "DPP",
+      "label": "DPP",
+      "price": 0.0,
+      "hours": 0.0,
+      "part_numbers": []
+    },
+    {
+      "code": "DIS",
+      "label": "DIS",
+      "price": 0.0,
+      "hours": 0.0,
+      "part_numbers": []
+    },
+    {
+      "code": "BATTS",
+      "label": "BATTS",
+      "price": 0.0,
+      "hours": 0.0,
+      "part_numbers": []
+    },
+    {
+      "code": "Pro1",
+      "label": "Pro 1",
+      "price": 0.0,
+      "hours": 0.0,
+      "part_numbers": []
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+:root {
+  --bg: #eef0f3;
+  --surface: #ffffff;
+  --surface-muted: #f6f7f9;
+  --surface-elevated: #ffffff;
+  --border: #e2e5ea;
+  --border-strong: #cdd2da;
+  --text: #0f1115;
+  --text-muted: #5c6573;
+  --text-subtle: #8b939e;
+  --accent: #D31124;
+  --accent-hover: #b80e1f;
+  --accent-soft: rgba(211, 17, 36, 0.07);
+  --accent-ring: rgba(211, 17, 36, 0.16);
+  --success: #047857;
+  --success-soft: rgba(4, 120, 87, 0.1);
+  --warning: #b45309;
+  --warning-soft: rgba(180, 83, 9, 0.08);
+  --shadow-sm: 0 1px 2px rgba(15, 17, 21, 0.04);
+  --shadow-md: 0 8px 24px rgba(15, 17, 21, 0.06);
+  --shadow-lg: 0 16px 40px rgba(15, 17, 21, 0.08);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+}
+
+a { color: inherit; text-decoration: none; }
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: color 0.15s;
+}
+
+.back-link:hover { color: var(--accent); }
+
+.page-footer {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-subtle);
+  padding: 1.5rem 1rem 2rem;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  background: var(--text);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 0.72rem 1.15rem;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(15, 17, 21, 0.22);
+  transition: transform 0.15s, filter 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.btn-primary:hover {
+  background: #000;
+  transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
