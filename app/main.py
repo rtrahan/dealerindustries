@@ -9,7 +9,7 @@ import re
 from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
-from fastapi.responses import HTMLResponse, Response, StreamingResponse
+from fastapi.responses import FileResponse, HTMLResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from openpyxl import load_workbook
 
@@ -35,6 +35,11 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 def _read_page(name: str) -> str:
     return (STATIC_DIR / name).read_text(encoding="utf-8")
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon() -> FileResponse:
+    return FileResponse(STATIC_DIR / "logo.png", media_type="image/png")
 
 
 @app.get("/", response_class=HTMLResponse)

@@ -39,7 +39,7 @@ This project uses [Vercel's zero-config FastAPI support](https://vercel.com/docs
 |------|-----------------|-------|
 | **Tekion** | Yes | Excel + CSV uploads |
 | **Dynatron** | Yes | Op Code Analysis `.xlsx` + RAP `.csv` |
-| **CDK Photos** | Yes* | Requires `GEMINI_API_KEY`; may need Pro plan for longer runs |
+| **CDK Photos** | Yes* | Requires `GEMINI_API_KEY`; photos are auto-compressed to fit Vercel's 4 MB upload limit |
 
 \* PDF generation is configured for up to 60 seconds (`vercel.json`). Hobby plans cap at 10s — upgrade to Pro if reports time out.
 

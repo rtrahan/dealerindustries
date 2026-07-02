@@ -717,7 +717,7 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
             </svg>
             <span class="slot-title">All CDK report photos</span>
-            <span class="slot-hint">Drop every page at once — recap and OP-code history. We'll sort them automatically.</span>
+            <span class="slot-hint">Drop every page at once. Photos are compressed automatically before upload.</span>
           </div>
         </div>
 
@@ -875,6 +875,72 @@
       cdkReady: document.getElementById("check-cdk-ready"),
     };
 
+    const VERCEL_SAFE_UPLOAD_BYTES = 4 * 1024 * 1024;
+
+    async function compressImageFile(file, maxEdge = 1800, quality = 0.82) {
+      const bitmap = await createImageBitmap(file);
+      const longest = Math.max(bitmap.width, bitmap.height);
+      const scale = longest > maxEdge ? maxEdge / longest : 1;
+      const width = Math.max(1, Math.round(bitmap.width * scale));
+      const height = Math.max(1, Math.round(bitmap.height * scale));
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext("2d").drawImage(bitmap, 0, 0, width, height);
+      bitmap.close();
+
+      const blob = await new Promise((resolve) => {
+        canvas.toBlob((result) => resolve(result), "image/jpeg", quality);
+      });
+      if (!blob) throw new Error(`Could not compress ${file.name}.`);
+
+      const baseName = file.name.replace(/\.[^.]+$/i, "") || "photo";
+      return new File([blob], `${baseName}.jpg`, { type: "image/jpeg", lastModified: file.lastModified });
+    }
+
+    async function prepareCdkPhotosForUpload(files, onProgress) {
+      const originals = Array.from(files);
+      let maxEdge = 1800;
+      let quality = 0.82;
+      let compressed = [];
+
+      for (let attempt = 0; attempt < 6; attempt++) {
+        if (onProgress) {
+          onProgress(`Compressing photos (${attempt + 1}/6)…`);
+        }
+        compressed = [];
+        for (const file of originals) {
+          compressed.push(await compressImageFile(file, maxEdge, quality));
+        }
+        const total = compressed.reduce((sum, file) => sum + file.size, 0);
+        if (total <= VERCEL_SAFE_UPLOAD_BYTES) {
+          return compressed;
+        }
+        if (quality > 0.55) {
+          quality -= 0.1;
+        } else {
+          maxEdge = Math.max(1000, maxEdge - 200);
+          quality = 0.72;
+        }
+      }
+
+      const total = compressed.reduce((sum, file) => sum + file.size, 0);
+      if (total > VERCEL_SAFE_UPLOAD_BYTES) {
+        const mb = (total / (1024 * 1024)).toFixed(1);
+        throw new Error(
+          `Photos are still ${mb} MB after compression. Upload fewer pages at a time (4 MB max).`
+        );
+      }
+      return compressed;
+    }
+
+    function readHttpError(res, fallback) {
+      if (res.status === 413) {
+        return "Upload too large for the server (4 MB limit). Try fewer photos.";
+      }
+      return fallback;
+    }
+
     function formatBytes(bytes) {
       if (bytes === 0) return "0 B";
       const k = 1024;
@@ -993,7 +1059,7 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z" />
         </svg>
         <span class="slot-title">All CDK report photos</span>
-        <span class="slot-hint">Drop every page at once — recap and OP-code history. We'll sort them automatically.</span>
+        <span class="slot-hint">Drop every page at once. Photos are compressed automatically before upload.</span>
       `;
       bindCdkSlotEvents();
     }
@@ -1243,64 +1309,40 @@
       });
     }
 
-    async function submitCdkWithProgress(formData) {
-      showProgressPanel(cdkPhotos.length);
+    async function submitCdkPhotos(preparedPhotos) {
+      showProgressPanel(preparedPhotos.length);
+      progressMessage.textContent = "Uploading and analyzing photos…";
 
-      const res = await fetch("/api/generate-cdk/stream", { method: "POST", body: formData });
+      const formData = new FormData();
+      preparedPhotos.forEach((file) => formData.append("photos", file));
+
+      const dealership = document.getElementById("dealership").value.trim();
+      const period = document.getElementById("period").value;
+      if (dealership) formData.append("store_name", dealership);
+      if (period) formData.append("period_end", formatDateForApi(period));
+
+      const res = await fetch("/api/generate-cdk", { method: "POST", body: formData });
       if (!res.ok) {
         const err = await res.json().catch(() => ({ detail: res.statusText }));
-        throw new Error(typeof err.detail === "string" ? err.detail : "Generation failed");
+        const detail = typeof err.detail === "string" ? err.detail : "Generation failed";
+        throw new Error(readHttpError(res, detail));
       }
 
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-      let result = null;
+      progressFill.style.width = "100%";
+      progressPercent.textContent = "100%";
+      progressMessage.textContent = "Downloading report…";
+      progressSteps.forEach((step) => {
+        step.classList.remove("active");
+        step.classList.add("done");
+      });
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-
-        const chunks = buffer.split("\n\n");
-        buffer = chunks.pop() || "";
-
-        for (const chunk of chunks) {
-          const line = chunk.trim().split("\n").find((row) => row.startsWith("data: "));
-          if (!line) continue;
-          const event = JSON.parse(line.slice(6));
-
-          if (event.type === "progress") {
-            updateProgressPanel(event);
-          } else if (event.type === "complete") {
-            updateProgressPanel({ ...event, phase: "pdf", percent: 100 });
-            progressSteps.forEach((step) => {
-              step.classList.remove("active");
-              step.classList.add("done");
-            });
-            if (event.total_kits != null) {
-              progressMessage.textContent =
-                `Done — ${event.advisors} advisors, ${event.total_kits} kits`;
-            }
-            result = event;
-          } else if (event.type === "error") {
-            throw new Error(event.message || "Generation failed");
-          }
-        }
-      }
-
-      if (!result?.pdf_b64) {
-        throw new Error("Report generation ended unexpectedly.");
-      }
-
-      const binary = atob(result.pdf_b64);
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-      const blob = new Blob([bytes], { type: "application/pdf" });
+      const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = result.filename || "advisor-report.pdf";
+      const disposition = res.headers.get("Content-Disposition");
+      const match = disposition?.match(/filename="?([^"]+)"?/);
+      a.download = match ? match[1] : "advisor-report.pdf";
       a.click();
       URL.revokeObjectURL(url);
     }
@@ -1341,29 +1383,32 @@
       if (reportMode !== "cdk") showStatus(loadingMsg, "loading");
       submitBtn.disabled = true;
 
-      const formData = new FormData();
       const dealership = document.getElementById("dealership").value.trim();
       const period = document.getElementById("period").value;
 
-      if (reportMode === "cdk") {
-        cdkPhotos.forEach((file) => formData.append("photos", file));
-      } else if (reportMode === "dynatron") {
-        formData.append("opcode_file", slots.cdkOpcode.file);
-        formData.append("recap_file", slots.cdkRecap.file);
-      } else {
-        formData.append("files", slots.advisor.file);
-        formData.append("files", slots.opcode.file);
-      }
-
-      if (dealership) formData.append("store_name", dealership);
-      if (period) formData.append("period_end", formatDateForApi(period));
-
       try {
         if (reportMode === "cdk") {
-          await submitCdkWithProgress(formData);
+          showProgressPanel(cdkPhotos.length);
+          progressMessage.textContent = "Preparing photos…";
+          const preparedPhotos = await prepareCdkPhotosForUpload(cdkPhotos, (msg) => {
+            progressMessage.textContent = msg;
+          });
+          await submitCdkPhotos(preparedPhotos);
           hideProgressPanel();
           successPanel.classList.add("visible");
         } else {
+          const formData = new FormData();
+          if (reportMode === "dynatron") {
+            formData.append("opcode_file", slots.cdkOpcode.file);
+            formData.append("recap_file", slots.cdkRecap.file);
+          } else {
+            formData.append("files", slots.advisor.file);
+            formData.append("files", slots.opcode.file);
+          }
+
+          if (dealership) formData.append("store_name", dealership);
+          if (period) formData.append("period_end", formatDateForApi(period));
+
           const endpoint = reportMode === "dynatron" ? "/api/generate-dynatron-export" : "/api/generate";
           const res = await fetch(endpoint, { method: "POST", body: formData });
 
@@ -1373,7 +1418,7 @@
             if (typeof err.detail === "string") msg = err.detail;
             else if (Array.isArray(err.detail)) msg = err.detail.map(e => e.msg || JSON.stringify(e)).join(", ");
             else if (err.detail?.message) msg = err.detail.message;
-            throw new Error(msg);
+            throw new Error(readHttpError(res, msg));
           }
 
           const blob = await res.blob();
