@@ -147,7 +147,7 @@ async def generate_cdk_report_stream(
 
     async def event_stream():
         task = asyncio.create_task(run_job())
-        yield f"data: {json.dumps({'type': 'progress', 'phase': 'analyze', 'percent': 3, 'message': f'Received {len(photo_bytes)} photo(s). Starting analysis…'})}\n\n"
+        yield f"data: {json.dumps({'type': 'progress', 'phase': 'analyze', 'percent': 12, 'message': f'Received {len(photo_bytes)} photo(s). Starting analysis…'})}\n\n"
         while True:
             try:
                 item = await asyncio.wait_for(queue.get(), timeout=2.0)

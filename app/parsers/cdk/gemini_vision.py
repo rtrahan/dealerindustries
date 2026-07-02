@@ -368,7 +368,7 @@ def process_cdk_photos(
         phase="analyze",
         current=0,
         total=total,
-        percent=4,
+        percent=14,
         message=f"Analyzing {total} photos in parallel ({workers} at a time)…",
         workers=workers,
     )
@@ -396,7 +396,7 @@ def process_cdk_photos(
                     phase="analyze",
                     current=completed,
                     total=total,
-                    percent=max(4, int((completed / total) * 68)),
+                    percent=14 + int((completed / total) * 56),
                     message=f"Photo {index + 1} done — {label} ({completed}/{total})",
                     report_type=report_type,
                 )

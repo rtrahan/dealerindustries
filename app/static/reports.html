@@ -1287,7 +1287,10 @@
 
     function showProgressPanel(photoCount) {
       stopActivityPulse();
-      lastProgressPercent = 0;
+      stopProgressAnimation();
+      targetPercent = 0;
+      displayedPercent = 0;
+      latestProgressEvent = {};
       lastProgressAt = Date.now();
       progressPanel.classList.add("visible");
       progressFill.style.width = "0%";
@@ -1306,12 +1309,7 @@
       progressPanel.classList.remove("visible");
     }
 
-    function updateProgressPanel(event) {
-      const percent = Math.max(0, Math.min(100, Number(event.percent) || 0));
-      progressFill.style.width = `${percent}%`;
-      progressPercent.textContent = `${percent}%`;
-      if (event.message) progressMessage.textContent = event.message;
-
+    function updateProgressPhase(event) {
       const phase = event.phase;
       if (!phase) return;
 
@@ -1324,8 +1322,40 @@
     }
 
     let activityPulseTimer = null;
+    let progressAnimFrame = null;
     let lastProgressAt = 0;
-    let lastProgressPercent = 0;
+    let targetPercent = 0;
+    let displayedPercent = 0;
+    let latestProgressEvent = {};
+
+    function renderProgressPercent(percent) {
+      const clamped = Math.max(0, Math.min(100, Math.round(percent)));
+      progressFill.style.width = `${clamped}%`;
+      progressPercent.textContent = `${clamped}%`;
+    }
+
+    function ensureProgressAnimation() {
+      if (progressAnimFrame != null) return;
+      const step = () => {
+        if (displayedPercent < targetPercent) {
+          const gap = targetPercent - displayedPercent;
+          const delta = gap > 15 ? Math.max(1, Math.ceil(gap * 0.15)) : 1;
+          displayedPercent = Math.min(targetPercent, displayedPercent + delta);
+          renderProgressPercent(displayedPercent);
+          progressAnimFrame = requestAnimationFrame(step);
+        } else {
+          progressAnimFrame = null;
+        }
+      };
+      progressAnimFrame = requestAnimationFrame(step);
+    }
+
+    function stopProgressAnimation() {
+      if (progressAnimFrame != null) {
+        cancelAnimationFrame(progressAnimFrame);
+        progressAnimFrame = null;
+      }
+    }
 
     function stopActivityPulse() {
       if (activityPulseTimer) {
@@ -1338,22 +1368,28 @@
       stopActivityPulse();
       lastProgressAt = Date.now();
       activityPulseTimer = setInterval(() => {
-        if (Date.now() - lastProgressAt < 1800) return;
-        if (lastProgressPercent >= 92) return;
-        lastProgressPercent = Math.min(92, lastProgressPercent + 1);
-        updateProgressPanel({
-          percent: lastProgressPercent,
-          message: progressMessage.textContent || "Still working…",
-        });
-      }, 1200);
+        if (Date.now() - lastProgressAt < 2500) return;
+        if (targetPercent >= 92) return;
+        targetPercent = Math.min(92, Math.max(targetPercent, displayedPercent) + 1);
+        ensureProgressAnimation();
+      }, 1500);
     }
 
-    function noteProgress(event) {
+    function noteProgress(event, { snap = false } = {}) {
       lastProgressAt = Date.now();
+      latestProgressEvent = { ...latestProgressEvent, ...event };
       if (event.percent != null) {
-        lastProgressPercent = Math.max(lastProgressPercent, Number(event.percent) || 0);
+        targetPercent = Math.max(targetPercent, Number(event.percent) || 0);
       }
-      updateProgressPanel(event);
+      if (event.message) progressMessage.textContent = event.message;
+      updateProgressPhase(latestProgressEvent);
+      if (snap) {
+        displayedPercent = targetPercent;
+        renderProgressPercent(displayedPercent);
+        stopProgressAnimation();
+      } else {
+        ensureProgressAnimation();
+      }
     }
 
     async function submitCdkPhotos(preparedPhotos) {
@@ -1402,7 +1438,7 @@
           if (event.type === "progress") {
             noteProgress(event);
           } else if (event.type === "complete") {
-            noteProgress({ ...event, phase: "pdf", percent: 100, message: "Report ready!" });
+            noteProgress({ ...event, phase: "pdf", percent: 100, message: "Report ready!" }, { snap: true });
             progressSteps.forEach((step) => {
               step.classList.remove("active");
               step.classList.add("done");
@@ -1445,6 +1481,7 @@
 
     function resetForm() {
       stopActivityPulse();
+      stopProgressAnimation();
       clearSlot("advisor");
       clearSlot("opcode");
       clearSlot("cdkOpcode");
@@ -1527,6 +1564,7 @@
         }
       } catch (err) {
         stopActivityPulse();
+        stopProgressAnimation();
         hideProgressPanel();
         showStatus(err.message || "Something went wrong.", "error");
       } finally {
