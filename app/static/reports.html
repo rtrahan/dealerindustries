@@ -905,15 +905,26 @@
       let compressed = [];
 
       for (let attempt = 0; attempt < 6; attempt++) {
-        if (onProgress) {
-          onProgress(`Compressing photos (${attempt + 1}/6)…`);
-        }
         compressed = [];
-        for (const file of originals) {
+        for (let i = 0; i < originals.length; i++) {
+          const file = originals[i];
+          const basePercent = 2 + Math.round((i / originals.length) * 8);
+          if (onProgress) {
+            onProgress(
+              attempt === 0
+                ? `Compressing photo ${i + 1} of ${originals.length}…`
+                : `Re-compressing photo ${i + 1} of ${originals.length}…`,
+              basePercent,
+              "analyze"
+            );
+          }
           compressed.push(await compressImageFile(file, maxEdge, quality));
         }
-        const total = compressed.reduce((sum, file) => sum + file.size, 0);
+        const total = compressed.reduce((sum, f) => sum + f.size, 0);
         if (total <= VERCEL_SAFE_UPLOAD_BYTES) {
+          if (onProgress) {
+            onProgress(`Ready to upload ${formatBytes(total)}`, 10, "analyze");
+          }
           return compressed;
         }
         if (quality > 0.55) {
@@ -1275,6 +1286,9 @@
     const PHASE_ORDER = ["analyze", "merge", "build", "pdf"];
 
     function showProgressPanel(photoCount) {
+      stopActivityPulse();
+      lastProgressPercent = 0;
+      lastProgressAt = Date.now();
       progressPanel.classList.add("visible");
       progressFill.style.width = "0%";
       progressPercent.textContent = "0%";
@@ -1309,9 +1323,47 @@
       });
     }
 
+    let activityPulseTimer = null;
+    let lastProgressAt = 0;
+    let lastProgressPercent = 0;
+
+    function stopActivityPulse() {
+      if (activityPulseTimer) {
+        clearInterval(activityPulseTimer);
+        activityPulseTimer = null;
+      }
+    }
+
+    function startActivityPulse() {
+      stopActivityPulse();
+      lastProgressAt = Date.now();
+      activityPulseTimer = setInterval(() => {
+        if (Date.now() - lastProgressAt < 1800) return;
+        if (lastProgressPercent >= 92) return;
+        lastProgressPercent = Math.min(92, lastProgressPercent + 1);
+        updateProgressPanel({
+          percent: lastProgressPercent,
+          message: progressMessage.textContent || "Still working…",
+        });
+      }, 1200);
+    }
+
+    function noteProgress(event) {
+      lastProgressAt = Date.now();
+      if (event.percent != null) {
+        lastProgressPercent = Math.max(lastProgressPercent, Number(event.percent) || 0);
+      }
+      updateProgressPanel(event);
+    }
+
     async function submitCdkPhotos(preparedPhotos) {
       showProgressPanel(preparedPhotos.length);
-      progressMessage.textContent = "Uploading and analyzing photos…";
+      noteProgress({
+        phase: "analyze",
+        percent: 12,
+        message: `Uploading ${preparedPhotos.length} photo(s)…`,
+      });
+      startActivityPulse();
 
       const formData = new FormData();
       preparedPhotos.forEach((file) => formData.append("photos", file));
@@ -1321,28 +1373,67 @@
       if (dealership) formData.append("store_name", dealership);
       if (period) formData.append("period_end", formatDateForApi(period));
 
-      const res = await fetch("/api/generate-cdk", { method: "POST", body: formData });
+      const res = await fetch("/api/generate-cdk/stream", { method: "POST", body: formData });
       if (!res.ok) {
+        stopActivityPulse();
         const err = await res.json().catch(() => ({ detail: res.statusText }));
         const detail = typeof err.detail === "string" ? err.detail : "Generation failed";
         throw new Error(readHttpError(res, detail));
       }
 
-      progressFill.style.width = "100%";
-      progressPercent.textContent = "100%";
-      progressMessage.textContent = "Downloading report…";
-      progressSteps.forEach((step) => {
-        step.classList.remove("active");
-        step.classList.add("done");
-      });
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let result = null;
 
-      const blob = await res.blob();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const chunks = buffer.split("\n\n");
+        buffer = chunks.pop() || "";
+
+        for (const chunk of chunks) {
+          const line = chunk.trim().split("\n").find((row) => row.startsWith("data: "));
+          if (!line) continue;
+          const event = JSON.parse(line.slice(6));
+
+          if (event.type === "progress") {
+            noteProgress(event);
+          } else if (event.type === "complete") {
+            noteProgress({ ...event, phase: "pdf", percent: 100, message: "Report ready!" });
+            progressSteps.forEach((step) => {
+              step.classList.remove("active");
+              step.classList.add("done");
+            });
+            if (event.total_kits != null) {
+              progressMessage.textContent =
+                `Done — ${event.advisors} advisors, ${event.total_kits} kits`;
+            }
+            result = event;
+          } else if (event.type === "error") {
+            throw new Error(event.message || "Generation failed");
+          }
+        }
+      }
+
+      stopActivityPulse();
+
+      if (!result?.pdf_b64) {
+        throw new Error("Report generation ended unexpectedly.");
+      }
+
+      progressMessage.textContent = "Downloading report…";
+
+      const binary = atob(result.pdf_b64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const blob = new Blob([bytes], { type: "application/pdf" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      const disposition = res.headers.get("Content-Disposition");
-      const match = disposition?.match(/filename="?([^"]+)"?/);
-      a.download = match ? match[1] : "advisor-report.pdf";
+      a.download = result.filename || "advisor-report.pdf";
       a.click();
       URL.revokeObjectURL(url);
     }
@@ -1353,6 +1444,7 @@
     }
 
     function resetForm() {
+      stopActivityPulse();
       clearSlot("advisor");
       clearSlot("opcode");
       clearSlot("cdkOpcode");
@@ -1389,9 +1481,8 @@
       try {
         if (reportMode === "cdk") {
           showProgressPanel(cdkPhotos.length);
-          progressMessage.textContent = "Preparing photos…";
-          const preparedPhotos = await prepareCdkPhotosForUpload(cdkPhotos, (msg) => {
-            progressMessage.textContent = msg;
+          const preparedPhotos = await prepareCdkPhotosForUpload(cdkPhotos, (msg, percent, phase) => {
+            noteProgress({ message: msg, percent, phase: phase || "analyze" });
           });
           await submitCdkPhotos(preparedPhotos);
           hideProgressPanel();
@@ -1435,6 +1526,7 @@
           successPanel.classList.add("visible");
         }
       } catch (err) {
+        stopActivityPulse();
         hideProgressPanel();
         showStatus(err.message || "Something went wrong.", "error");
       } finally {

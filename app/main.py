@@ -147,8 +147,13 @@ async def generate_cdk_report_stream(
 
     async def event_stream():
         task = asyncio.create_task(run_job())
+        yield f"data: {json.dumps({'type': 'progress', 'phase': 'analyze', 'percent': 3, 'message': f'Received {len(photo_bytes)} photo(s). Starting analysis…'})}\n\n"
         while True:
-            item = await queue.get()
+            try:
+                item = await asyncio.wait_for(queue.get(), timeout=2.0)
+            except asyncio.TimeoutError:
+                yield ": keepalive\n\n"
+                continue
             if item is None:
                 break
             yield f"data: {json.dumps(item)}\n\n"
@@ -157,7 +162,11 @@ async def generate_cdk_report_stream(
     return StreamingResponse(
         event_stream(),
         media_type="text/event-stream",
-        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+        headers={
+            "Cache-Control": "no-cache, no-transform",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
     )
 
 
