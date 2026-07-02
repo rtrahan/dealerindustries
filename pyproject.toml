@@ -1,0 +1,17 @@
+[project]
+name = "dealer-industries"
+version = "0.2.0"
+description = "Advisor performance PDF reporting for Tekion, Dynatron, and CDK sources"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi==0.115.6",
+    "uvicorn[standard]==0.32.1",
+    "python-multipart==0.0.20",
+    "openpyxl==3.1.5",
+    "reportlab==4.2.5",
+    "pillow==11.1.0",
+    "google-genai>=2.10.0",
+]
+
+[tool.vercel]
+entrypoint = "app.main:app"

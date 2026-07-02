@@ -1,0 +1,10 @@
+.venv
+.env
+.env.*
+!.env.example
+test-*.pdf
+*.pdf
+data/
+__pycache__
+.pytest_cache
+.DS_Store

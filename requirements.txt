@@ -3,8 +3,5 @@ uvicorn[standard]==0.32.1
 python-multipart==0.0.20
 openpyxl==3.1.5
 reportlab==4.2.5
-pytesseract==0.3.13
-opencv-python-headless==4.13.0.92
 pillow==11.1.0
-numpy==2.4.6
 google-genai>=2.10.0
